@@ -1,0 +1,29 @@
+{
+  "name": "be_nc_news",
+  "version": "1.0.0",
+  "description": "",
+  "main": "listen.js",
+  "scripts": {
+    "setup-dbs": "psql -f db/setup.sql",
+    "migrate-make": "knex migrate:make",
+    "migrate-latest": "knex migrate:latest",
+    "migrate-rollback": "knex migrate:rollback",
+    "test": "mocha ./spec/*.spec.js",
+    "seed": "knex seed:run",
+    "dev": "nodemon listen.js",
+    "start": "node listen.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "knex": "^0.17.3",
+    "pg": "^7.11.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "nodemon": "^1.19.1",
+    "supertest": "^4.0.2"
+  }
+}
