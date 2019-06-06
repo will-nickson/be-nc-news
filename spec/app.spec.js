@@ -252,6 +252,42 @@ describe.only("/", () => {
               expect(body.comment.votes).to.eql(17);
             });
         });
+        it("PATCH /:comment_id status: 200 - decrements comments votes", () => {});
+        it("DELETE /:comment_id status: 204 - removes a comment", () => {});
+      });
+      describe("/ERRORS", () => {
+        it("GET status:404 - invalid path", () => {
+          return request(app)
+            .get("/api/comments/1/invaidPath")
+            .expect(404);
+        });
+        it("PATCH status: 404 - invalid comment_id ", () => {
+          return request(app)
+            .patch("/api/comments/1000")
+            .send({ inc_votes: 1 })
+            .expect(404);
+        });
+        it("PATCH status: 400 - non-numeric comment_id", () => {
+          return request(app)
+            .patch("/api/comments/notAComment_id")
+            .send({ inc_votes: 1 })
+            .expect(400);
+        });
+        it("PATCH status: 400 - non-numeric votes increment", () => {
+          return request(app)
+            .patch("/api/comments/1")
+            .send({ inc_votes: "tree" })
+            .expect(400);
+        });
+        it("PATCH status: 200 - defaults to 0 for no vote increment", () => {
+          return request(app)
+            .patch("/api/comments/1")
+            .send({})
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comment.votes).to.equal(16);
+            });
+        });
       });
     });
   });

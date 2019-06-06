@@ -57,8 +57,7 @@ exports.updateVoteCount = (article_id, increment, next) => {
 };
 
 exports.addComment = (article_id, { body }, next) => {
-  return connection
+  return connection("comments")
     .insert({ article_id })
-    .into("comments")
     .returning("*");
 };
