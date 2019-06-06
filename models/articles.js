@@ -2,10 +2,9 @@ const connection = require("../db/connection");
 
 exports.fetchArticles = article_id => {
   //   if (!article) return Promise.reject({ status: 404 });
-  return connection
+  return connection("articles")
     .select("articles.*")
     .count("comments.article_id AS comment_count")
-    .from("articles")
     .leftJoin("comments", "comments.article_id", "=", "articles.article_id")
     .groupBy("articles.article_id")
     .modify(query => {
@@ -20,7 +19,7 @@ exports.fetchAllArticlesSorted = ({
   author,
   topic
 }) => {
-  return connection
+  return connection("articles")
     .select(
       "articles.author",
       "articles.title",
@@ -30,7 +29,6 @@ exports.fetchAllArticlesSorted = ({
       "articles.votes"
     )
     .count("comments.article_id AS comment_count")
-    .from("articles")
     .leftJoin("comments", "comments.article_id", "=", "articles.article_id")
     .groupBy("articles.article_id")
     .modify(query => {
@@ -43,9 +41,8 @@ exports.fetchComments = (
   article_id,
   { sort_by = "comments.created_at", order = "desc" }
 ) => {
-  return connection
+  return connection("comments")
     .select("*")
-    .from("comments")
     .modify(query => {
       if (article_id)
         query.where({ "comments.article_id": article_id }).first();

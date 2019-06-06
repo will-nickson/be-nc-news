@@ -121,7 +121,7 @@ describe.only("/", () => {
               expect(+body.article.comment_count).to.equal(13);
             });
         });
-        it("PATCH /:article_id status: 200 - increments votes and returns updated article", () => {
+        it("PATCH /:article_id status: 200 - increments votes count", () => {
           return request(app)
             .patch("/api/articles/1")
             .send({ inc_votes: 1 })
@@ -130,7 +130,7 @@ describe.only("/", () => {
               expect(body.article.votes).to.eql(101);
             });
         });
-        it("PATCH /:article_id status: 200 - decrements votes and returns updated article", () => {
+        it("PATCH /:article_id status: 200 - decrements votes count", () => {
           return request(app)
             .patch("/api/articles/1")
             .send({ inc_votes: -1 })
@@ -161,7 +161,7 @@ describe.only("/", () => {
             .get("/api/articles/1/comments")
             .expect(200)
             .then(({ body }) => {
-              expect(body.comments).to.contain.keys(
+              expect(body[0]).to.contain.keys(
                 "comment_id",
                 "votes",
                 "created_at",
@@ -175,13 +175,69 @@ describe.only("/", () => {
             .get("/api/articles/1/comments")
             .expect(200)
             .then(({ body }) => {
-              expect(body.comments).to.contain.keys(
+              expect(body[0]).to.contain.keys(
                 "comment_id",
                 "votes",
                 "created_at",
                 "author",
                 "body"
               );
+              expect(body).to.be.sorted("created_at", {
+                descending: "true"
+              });
+            });
+        });
+      });
+      describe("/QUERIES", () => {
+        it("GET status: 200 - returns articles filtered by author", () => {
+          return request(app)
+            .get("/api/articles?author=icellusedkars")
+            .expect(200)
+            .then(({ body }) => {
+              body.articles.forEach(article =>
+                expect(article.author).to.equal("icellusedkars")
+              );
+            });
+        });
+        it("GET status: 200 - returns articles filtered by topic", () => {
+          return request(app)
+            .get("/api/articles?topic=mitch")
+            .expect(200)
+            .then(({ body }) => {
+              body.articles.forEach(article =>
+                expect(article.topic).to.equal("mitch")
+              );
+            });
+        });
+        it("GET status: 200 - returns articles filtered by author & topic", () => {
+          return request(app)
+            .get("/api/articles?author=icellusedkars&topic=mitch")
+            .expect(200)
+            .then(({ body }) => {
+              body.articles.forEach(article => {
+                expect(article.author).to.equal("icellusedkars");
+                expect(article.topic).to.equal("mitch");
+              });
+            });
+        });
+        it("GET status: 200 - sorts articles by provided query", () => {
+          return request(app)
+            .get("/api/articles?sort_by=author")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles).to.be.sorted("author", {
+                descending: "true"
+              });
+            });
+        });
+        it("GET status: 200 sorts - sorts articles ascending or descending by provided query", () => {
+          return request(app)
+            .get("/api/articles?order=asc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles).to.be.sorted("created_at", {
+                ascending: "true"
+              });
             });
         });
       });
@@ -208,29 +264,29 @@ describe.only("/", () => {
             .send({ inc_votes: 1 })
             .expect(400);
         });
-        it("POST status: 400 - for invalid article_id", () => {
+        xit("POST status: 400 - for invalid article_id", () => {
           return request(app)
-            .post("/api/articles/invalid/comment")
+            .post("/api/articles/invalid/comments")
             .send({ username: "icellusedkars", body: "this is a test comment" })
             .expect(400);
         });
-        it("POST status: 404 - for resource that does not exist", () => {
+        xit("POST status: 404 - for resource that does not exist", () => {
           return request(app)
-            .post("/api/articles/invalid/comment")
+            .post("/api/articles/invalid/comments")
             .send({ username: "icellusedkars", body: "this is a test comment" })
             .expect(404);
         });
-        it("POST status: 400 - for empty body", () => {
+        xit("POST status: 400 - for empty body", () => {
           return request(app)
-            .post("/api/articles/invalid/comment")
-            .send({ username: "icellusedkars", body: "" })
+            .post("/api/articles/invalid/comments")
+            .send({ username: "icellusedkars" })
             .expect(400);
         });
       });
     });
     describe("/COMMENTS", () => {
       describe("/byCommentId", () => {
-        it("PATCH /:comment_id status: 200 - returns a comment object by comment_id", () => {
+        it("PATCH /:comment_id status: 200 - returns a comment by comment_id", () => {
           return request(app)
             .patch("/api/comments/1/")
             .expect(200)
@@ -269,11 +325,6 @@ describe.only("/", () => {
         });
       });
       describe("/ERRORS", () => {
-        it("GET status:404 - invalid path", () => {
-          return request(app)
-            .get("/api/comments/1/invaidPath")
-            .expect(404);
-        });
         it("PATCH status: 404 - invalid comment_id ", () => {
           return request(app)
             .patch("/api/comments/1000")
@@ -300,6 +351,16 @@ describe.only("/", () => {
             .then(({ body }) => {
               expect(body.comment.votes).to.equal(16);
             });
+        });
+        it("DELETE status:404 for non-existent comment_id", () => {
+          return request(app)
+            .delete("/api/comments/100")
+            .expect(404);
+        });
+        it("DELETE status:400 for non-numeric comment_id", () => {
+          return request(app)
+            .delete("/api/comments/first")
+            .expect(400);
         });
       });
     });
