@@ -32,7 +32,11 @@ exports.fetchAllArticlesSorted = ({
     .count("comments.article_id AS comment_count")
     .from("articles")
     .leftJoin("comments", "comments.article_id", "=", "articles.article_id")
-    .groupBy("articles.article_id");
+    .groupBy("articles.article_id")
+    .modify(query => {
+      if (author) query.where({ "articles.author": author });
+      if (topic) query.where({ topic });
+    });
 };
 
 exports.fetchComments = (
@@ -56,8 +60,9 @@ exports.updateVoteCount = (article_id, increment, next) => {
     .returning("*");
 };
 
-exports.addComment = (article_id, { body }, next) => {
+exports.addComment = (article_id, comment, next) => {
   return connection("comments")
-    .insert({ article_id })
+    .where({ article_id })
+    .insert({ author: comment.username, body: comment.body })
     .returning("*");
 };

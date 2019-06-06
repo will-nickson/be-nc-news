@@ -45,7 +45,7 @@ exports.patchArticleById = (req, res, next) => {
 
 exports.postCommentToArticleById = (req, res, next) => {
   const { article_id } = req.params;
-  const { body } = req.body;
+  const body = req.body;
   addComment(article_id, body)
     .then(([comment]) => {
       if (!comment) return Promise.reject({ status: 400 });

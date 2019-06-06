@@ -6,3 +6,9 @@ exports.updateComment = (comment_id, { inc_votes = 0 }, next) => {
     .increment("votes", inc_votes)
     .returning("*");
 };
+
+exports.deleteComment = comment_id => {
+  return connection("comments")
+    .where({ comment_id })
+    .del();
+};

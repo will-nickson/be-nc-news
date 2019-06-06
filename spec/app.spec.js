@@ -153,6 +153,7 @@ describe.only("/", () => {
                 "body",
                 "article_id"
               );
+              expect(body.comment.body).to.equal("this is a test comment");
             });
         });
         it("GET /:article_id/comments status: 200 - returns an array of comments for article_id", () => {
@@ -227,7 +228,7 @@ describe.only("/", () => {
         });
       });
     });
-    describe.only("/COMMENTS", () => {
+    describe("/COMMENTS", () => {
       describe("/byCommentId", () => {
         it("PATCH /:comment_id status: 200 - returns a comment object by comment_id", () => {
           return request(app)
@@ -252,8 +253,20 @@ describe.only("/", () => {
               expect(body.comment.votes).to.eql(17);
             });
         });
-        it("PATCH /:comment_id status: 200 - decrements comments votes", () => {});
-        it("DELETE /:comment_id status: 204 - removes a comment", () => {});
+        it("PATCH /:comment_id status: 200 - decrements comments votes", () => {
+          return request(app)
+            .patch("/api/comments/1")
+            .send({ inc_votes: -1 })
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comment.votes).to.eql(15);
+            });
+        });
+        it("DELETE /:comment_id status: 204 - removes a comment", () => {
+          return request(app)
+            .delete("/api/comments/1")
+            .expect(204);
+        });
       });
       describe("/ERRORS", () => {
         it("GET status:404 - invalid path", () => {
