@@ -1,8 +1,10 @@
 const connection = require("../db/connection");
 
-exports.fetchUser = ({ username }) => {
+const fetchUsers = username => {
   return connection
     .select("*")
     .from("users")
     .where({ username });
 };
+
+module.exports = { fetchUsers };
