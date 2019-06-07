@@ -23,14 +23,23 @@ describe.only("/", () => {
         });
     });
     describe("/TOPICS", () => {
-      it("GET status: 200 returns all topics", () => {
-        return request(app)
-          .get("/api/topics")
-          .expect(200)
-          .then(({ body }) => {
-            expect(body.topics).to.be.an("array");
-            expect(body.topics[0]).to.contain.keys("description", "slug");
-          });
+      describe("/default", () => {
+        it("GET status: 200 returns all topics", () => {
+          return request(app)
+            .get("/api/topics")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.topics).to.be.an("array");
+              expect(body.topics[0]).to.contain.keys("description", "slug");
+            });
+        });
+      });
+      describe("/ERRORS", () => {
+        it("GET status:404 for invalid path", () => {
+          return request(app)
+            .get("/api/topics/invalid")
+            .expect(404);
+        });
       });
     });
     describe("/USERS", () => {
