@@ -145,7 +145,7 @@ describe.only("/", () => {
             .send({ username: "icellusedkars", body: "this is a test comment" })
             .expect(201)
             .then(({ body }) => {
-              expect(body.comment).to.contain.keys(
+              expect(body.comment[0]).to.contain.keys(
                 "comment_id",
                 "votes",
                 "created_at",
@@ -153,7 +153,7 @@ describe.only("/", () => {
                 "body",
                 "article_id"
               );
-              expect(body.comment.body).to.equal("this is a test comment");
+              expect(body.comment[0].body).to.equal("this is a test comment");
             });
         });
         it("GET /:article_id/comments status: 200 - returns an array of comments for article_id", () => {
@@ -264,19 +264,19 @@ describe.only("/", () => {
             .send({ inc_votes: 1 })
             .expect(400);
         });
-        xit("POST status: 400 - for invalid article_id", () => {
+        it("POST status: 404 - for invalid article_id", () => {
+          return request(app)
+            .post("/api/articles/100/comments")
+            .send({ username: "icellusedkars", body: "this is a test comment" })
+            .expect(404);
+        });
+        it("POST status: 400 - for non-numeric article_id", () => {
           return request(app)
             .post("/api/articles/invalid/comments")
             .send({ username: "icellusedkars", body: "this is a test comment" })
             .expect(400);
         });
-        xit("POST status: 404 - for resource that does not exist", () => {
-          return request(app)
-            .post("/api/articles/invalid/comments")
-            .send({ username: "icellusedkars", body: "this is a test comment" })
-            .expect(404);
-        });
-        xit("POST status: 400 - for empty body", () => {
+        it("POST status: 400 - for empty body", () => {
           return request(app)
             .post("/api/articles/invalid/comments")
             .send({ username: "icellusedkars" })

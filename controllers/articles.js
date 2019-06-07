@@ -43,20 +43,18 @@ exports.patchArticleById = (req, res, next) => {
     .catch(next);
 };
 
-exports.postCommentToArticleById = (req, res, next) => {
-  const { article_id } = req.params;
-  const body = req.body;
-  if (!body) res.sendStatus(400);
-  addComment(article_id, body)
-    .then(([comment]) => {
-      if (!comment) return Promise.reject({ status: 400 });
-      res.status(201).send({ comment });
-    })
-    .catch(next);
-};
-
 exports.getCommentsByArticleId = (req, res, next) => {
   fetchComments(req.params.article_id, req.query)
     .then(comments => res.status(200).send([comments]))
+    .catch(next);
+};
+
+exports.postCommentToArticleById = (req, res, next) => {
+  const { article_id } = req.params;
+  const newComment = req.body;
+  addComment({ article_id }, newComment)
+    .then(comment => {
+      res.status(201).send({ comment });
+    })
     .catch(next);
 };
