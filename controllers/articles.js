@@ -3,19 +3,26 @@ const {
   fetchAllArticlesSorted,
   fetchComments,
   updateVoteCount,
-  addComment
+  addComment,
+  checkQuery
 } = require("../models/articles");
 
 exports.getArticles = (req, res, next) => {
-  fetchArticles(req.query)
-    .then((articles, total_count) => {
-      res.status(200).send({ ...total_count, articles });
+  checkQuery(req.query)
+    .then(() => {
+      return fetchAllArticlesSorted(req.query);
+    })
+    .then(articles => {
+      res.status(200).send({ articles });
     })
     .catch(next);
 };
 
 exports.getAllArticlesSorted = (req, res, next) => {
-  fetchAllArticlesSorted(req.query)
+  checkQuery(req.query)
+    .then(() => {
+      return fetchAllArticlesSorted(req.query);
+    })
     .then((articles, total_count) => {
       res.status(200).send({ ...total_count, articles });
     })
@@ -34,7 +41,7 @@ exports.getArticleById = (req, res, next) => {
 exports.patchArticleById = (req, res, next) => {
   const increment = req.body.inc_votes;
   const { article_id } = req.params;
-  updateVoteCount(article_id, increment)
+  updateVoteCount(article_id, { increment })
     .then(([article]) => {
       if (!article)
         return Promise.reject({ status: 404, msg: "article not found" });
@@ -44,8 +51,9 @@ exports.patchArticleById = (req, res, next) => {
 };
 
 exports.getCommentsByArticleId = (req, res, next) => {
-  fetchComments(req.params.article_id, req.query)
-    .then(comments => res.status(200).send([comments]))
+  const comments = req.body.article_id;
+  fetchComments(comments, req.query)
+    .then(comments => res.status(200).send({ comments }))
     .catch(next);
 };
 

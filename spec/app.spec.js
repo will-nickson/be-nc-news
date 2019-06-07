@@ -14,7 +14,7 @@ describe.only("/", () => {
   after(() => connection.destroy());
 
   describe("/API", () => {
-    it("GET status:200", () => {
+    it("GET status: 200", () => {
       return request(app)
         .get("/api")
         .expect(200)
@@ -24,7 +24,7 @@ describe.only("/", () => {
     });
     describe("/TOPICS", () => {
       describe("/default", () => {
-        it("GET status: 200 returns all topics", () => {
+        it("GET status: 200 - returns all topics", () => {
           return request(app)
             .get("/api/topics")
             .expect(200)
@@ -35,7 +35,7 @@ describe.only("/", () => {
         });
       });
       describe("/ERRORS", () => {
-        it("GET status:404 for invalid path", () => {
+        it("GET status: 404 - for invalid path", () => {
           return request(app)
             .get("/api/topics/invalid")
             .expect(404);
@@ -45,7 +45,7 @@ describe.only("/", () => {
     describe("/USERS", () => {
       describe("/default", () => {});
       describe("/byUserName", () => {
-        it("GET status: 200 returns user by id", () => {
+        it("GET status: 200 - returns user by id", () => {
           return request(app)
             .get("/api/users/icellusedkars")
             .expect(200)
@@ -85,12 +85,23 @@ describe.only("/", () => {
               );
             });
         });
+        it("GET /articles status: 200 - default sorts returned articles to created_at desc", () => {
+          return request(app)
+            .get("/api/articles")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles).to.be.sorted("created_at", {
+                descending: "true"
+              });
+              expect(body.articles[0].article_id).to.equal(1);
+            });
+        });
         it("GET /articles status: 200 - returns the comment count for each article", () => {
           return request(app)
             .get("/api/articles")
             .expect(200)
             .then(({ body }) => {
-              expect(+body.articles[7].comment_count).to.equal(13);
+              expect(+body.articles[0].comment_count).to.equal(13);
             });
         });
         it("GET /articles status: 200 - sorts array by articles date desc", () => {
@@ -102,6 +113,12 @@ describe.only("/", () => {
                 descending: "true"
               });
             });
+        });
+        it("PATCH /articles status: 200 - defaults to 0 for missing votes", () => {
+          return request(app)
+            .patch("/api/articles/1")
+            .send({})
+            .expect(200);
         });
       });
       describe("/byArticleId", () => {
@@ -165,40 +182,53 @@ describe.only("/", () => {
               expect(body.comment[0].body).to.equal("this is a test comment");
             });
         });
-        it("GET /:article_id/comments status: 200 - returns an array of comments for article_id", () => {
+        it("GET /:article_id/comments status: 200 - returns an object of comments for article_id", () => {
           return request(app)
             .get("/api/articles/1/comments")
             .expect(200)
             .then(({ body }) => {
-              expect(body[0]).to.contain.keys(
-                "comment_id",
-                "votes",
-                "created_at",
-                "author",
-                "body"
-              );
+              body.comments.forEach(comment => {
+                expect(comment).to.contain.keys(
+                  "comment_id",
+                  "votes",
+                  "created_at",
+                  "author",
+                  "body"
+                );
+                expect(comment).to.be.an("object");
+              });
             });
         });
-        it("GET /:article_id/comments status: 200 - returns an array with results sortedBy created_at descending default", () => {
+        it("GET /:article_id/comments status: 200 - returns an array with results sorted_by created_at descending default", () => {
           return request(app)
             .get("/api/articles/1/comments")
             .expect(200)
             .then(({ body }) => {
-              expect(body[0]).to.contain.keys(
+              expect(body.comments[0]).to.contain.keys(
                 "comment_id",
                 "votes",
                 "created_at",
                 "author",
                 "body"
               );
-              expect(body).to.be.sorted("created_at", {
+              expect(body.comments).to.be.sorted("created_at", {
                 descending: "true"
               });
             });
         });
+        it("GET /:article_id/comments status: 200 - returns an empty array when the article has no comments", () => {
+          return request(app)
+            .get("/api/articles/2/comments")
+            .expect(200)
+            .then(({ body }) => {
+              // console.log(body);
+              // expect(body.).to.eql(2);
+              expect(body.comments.article_id).to.eql([]);
+            });
+        });
       });
       describe("/QUERIES", () => {
-        it("GET status: 200 - returns articles filtered by author", () => {
+        it("GET /articles status: 200 - returns articles filtered by author", () => {
           return request(app)
             .get("/api/articles?author=icellusedkars")
             .expect(200)
@@ -208,7 +238,7 @@ describe.only("/", () => {
               );
             });
         });
-        it("GET status: 200 - returns articles filtered by topic", () => {
+        it("GET /articles status: 200 - returns articles filtered by topic", () => {
           return request(app)
             .get("/api/articles?topic=mitch")
             .expect(200)
@@ -218,7 +248,7 @@ describe.only("/", () => {
               );
             });
         });
-        it("GET status: 200 - returns articles filtered by author & topic", () => {
+        it("GET /articles status: 200 - returns articles filtered by author & topic", () => {
           return request(app)
             .get("/api/articles?author=icellusedkars&topic=mitch")
             .expect(200)
@@ -229,7 +259,7 @@ describe.only("/", () => {
               });
             });
         });
-        it("GET status: 200 - sorts articles by provided query", () => {
+        it("GET /articles status: 200 - sorts articles by provided query", () => {
           return request(app)
             .get("/api/articles?sort_by=author")
             .expect(200)
@@ -237,14 +267,36 @@ describe.only("/", () => {
               expect(body.articles).to.be.sorted("author", {
                 descending: "true"
               });
+              expect(body.articles[0].author).to.equal("rogersop");
             });
         });
-        it("GET status: 200 sorts - sorts articles ascending or descending by provided query", () => {
+        it("GET /articles status: 200 - sorts articles ascending or descending by provided query", () => {
           return request(app)
             .get("/api/articles?order=asc")
             .expect(200)
             .then(({ body }) => {
               expect(body.articles).to.be.sorted("created_at", {
+                ascending: "true"
+              });
+              expect(body.articles[0].title).to.equal("Moustache");
+            });
+        });
+        it("GET /articles/:articles status: 200 - returns comments sorted by specified key", () => {
+          return request(app)
+            .get("/api/articles/1/comments?sort_by=votes")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sorted("votes", {
+                descending: "true"
+              });
+            });
+        });
+        it("GET /articles/:articles status: 200 - returns comments sorted by specified key", () => {
+          return request(app)
+            .get("/api/articles/1/comments?order=asc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sorted({
                 ascending: "true"
               });
             });
@@ -261,9 +313,24 @@ describe.only("/", () => {
             .get("/api/articles/notAnArticle")
             .expect(400);
         });
+        it("GET status: 404 - for an invalid topic query", () => {
+          return request(app)
+            .get("/api/articles?topic=not-a-topic")
+            .expect(404);
+        });
+        it("GET status: 404 - for an invalid author query", () => {
+          return request(app)
+            .get("/api/articles?author=not-an-author")
+            .expect(404);
+        });
+        it("GET status: 404 - for an invalid article_id", () => {
+          return request(app)
+            .get("/api/articles/1000/comments")
+            .expect(404);
+        });
         it("PATCH status: 404 - for resource that does not exist", () => {
           return request(app)
-            .patch("/api/articles/10000")
+            .patch("/api/articles/1000")
             .send({ inc_votes: 1000 })
             .expect(404);
         });

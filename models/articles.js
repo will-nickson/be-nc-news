@@ -1,7 +1,6 @@
 const connection = require("../db/connection");
 
 exports.fetchArticles = article_id => {
-  //   if (!article) return Promise.reject({ status: 404 });
   return connection("articles")
     .select("articles.*")
     .count("comments.article_id AS comment_count")
@@ -34,7 +33,8 @@ exports.fetchAllArticlesSorted = ({
     .modify(query => {
       if (author) query.where({ "articles.author": author });
       if (topic) query.where({ topic });
-    });
+    })
+    .orderBy(sort_by, order);
 };
 
 exports.fetchComments = (
@@ -50,7 +50,7 @@ exports.fetchComments = (
     .orderBy(sort_by, order);
 };
 
-exports.updateVoteCount = (article_id, increment, next) => {
+exports.updateVoteCount = (article_id, { increment = 0 }, next) => {
   return connection("articles")
     .where({ article_id })
     .increment("votes", increment)
@@ -62,4 +62,16 @@ exports.addComment = ({ article_id }, { username, body }, next) => {
     .insert({ author: username, body, article_id: article_id })
     .into("comments")
     .returning("*");
+};
+
+exports.checkQuery = ({ topic, sort_by = "*" }) => {
+  return connection("articles")
+    .select(sort_by)
+    .modify(query => {
+      if (topic) query.where({ topic });
+    })
+    .then(actualTopic => {
+      if (actualTopic.length < 1) return Promise.reject({ status: 404 });
+      else return actualTopic;
+    });
 };
