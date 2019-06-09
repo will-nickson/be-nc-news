@@ -1,28 +1,28 @@
 const articlesRouter = require("express").Router();
-const { methodNotAllowed } = require("../errors");
+const { methodNotAllowed } = require("../errors/index");
 const {
-  getAllArticlesSorted,
-  getArticleById,
-  getCommentsByArticleId,
-  patchArticleById,
-  postCommentToArticleById
+  getArticles,
+  getArticleByID,
+  updateArticleByID,
+  getCommentsByArticleID,
+  addCommentToArticle
 } = require("../controllers/articles");
 
 articlesRouter
   .route("/")
-  .get(getAllArticlesSorted)
+  .get(getArticles)
   .all(methodNotAllowed);
 
 articlesRouter
   .route("/:article_id")
-  .get(getArticleById)
-  .patch(patchArticleById)
+  .get(getArticleByID)
+  .patch(updateArticleByID)
   .all(methodNotAllowed);
 
 articlesRouter
   .route("/:article_id/comments")
-  .get(getCommentsByArticleId)
-  .post(postCommentToArticleById)
+  .get(getCommentsByArticleID)
+  .post(addCommentToArticle)
   .all(methodNotAllowed);
 
 module.exports = articlesRouter;

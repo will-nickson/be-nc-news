@@ -171,7 +171,7 @@ describe.only("/", () => {
             .send({ username: "icellusedkars", body: "this is a test comment" })
             .expect(201)
             .then(({ body }) => {
-              expect(body.comment[0]).to.contain.keys(
+              expect(body.comment).to.contain.keys(
                 "comment_id",
                 "votes",
                 "created_at",
@@ -179,7 +179,7 @@ describe.only("/", () => {
                 "body",
                 "article_id"
               );
-              expect(body.comment[0].body).to.equal("this is a test comment");
+              expect(body.comment.body).to.equal("this is a test comment");
             });
         });
         it("GET /:article_id/comments status: 200 - returns an object of comments for article_id", () => {
@@ -221,9 +221,7 @@ describe.only("/", () => {
             .get("/api/articles/2/comments")
             .expect(200)
             .then(({ body }) => {
-              // console.log(body);
-              // expect(body.).to.eql(2);
-              expect(body.comments.article_id).to.eql([]);
+              expect(body.comments).to.eql([]);
             });
         });
       });
@@ -313,12 +311,22 @@ describe.only("/", () => {
             .get("/api/articles/notAnArticle")
             .expect(400);
         });
+        it("GET status: 404 - for non existent article_id", () => {
+          return request(app)
+            .get("/api/articles/1000")
+            .expect(404);
+        });
         it("GET status: 404 - for an invalid topic query", () => {
           return request(app)
             .get("/api/articles?topic=not-a-topic")
             .expect(404);
         });
-        it("GET status: 404 - for an invalid author query", () => {
+        it.only("GET status: 404 - for an invalid sort_by query", () => {
+          return request(app)
+            .get("/api/articles?sort_by=not-a-column")
+            .expect(404);
+        });
+        it.only("GET status: 404 - for an invalid author query", () => {
           return request(app)
             .get("/api/articles?author=not-an-author")
             .expect(404);
