@@ -1,0 +1,152 @@
+{
+  "GET /api": {
+    "description": "Returns a JSON representation of all the available endpoints of the API"
+  },
+  "GET /api/topics": {
+    "description": "Returns an array of all topics",
+    "queries": [],
+    "exampleResponse": {
+      "topics": [
+        {
+          "description": "The man, the Mitch, the legend",
+          "slug": "mitch"
+        },
+        {
+          "description": "Not dogs",
+          "slug": "cats"
+        }
+      ]
+    }
+  },
+  "GET /api/articles": {
+    "description": "Returns array of all articles",
+    "queries": ["author", "topic", "sort_by", "order", "p", "limit"],
+    "exampleResponse": {
+      "articles": [
+        {
+          "author": "butter_bridge",
+          "title": "Living in the shadow of a great man",
+          "article_id": 1,
+          "body": "I find this existence challenging",
+          "topic": "mitch",
+          "created_at": "2018-11-15T12:21:54.171Z",
+          "votes": 100,
+          "comment_count": "13"
+        },
+        {
+          "author": "icellusedkars",
+          "title": "Sony Vaio; or, The Laptop",
+          "article_id": 2,
+          "body": "Call me Mitchell... ",
+          "topic": "mitch",
+          "created_at": "2014-11-16T12:21:54.171Z",
+          "votes": 0,
+          "comment_count": "0"
+        }
+      ]
+    }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "Returns article object matching specified article_id",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+        "author": "butter_bridge",
+        "title": "Living in the shadow of a great man",
+        "article_id": 1,
+        "body": "I find this existence challenging",
+        "topic": "mitch",
+        "created_at": "2018-11-15T12:21:54.171Z",
+        "votes": 100,
+        "comment_count": "13"
+      }
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "Updates the vote count for specified article by inc_votes value passed in the body. Returns updated value",
+    "queries": [],
+    "exampleBody": { "inc_votes": 5 },
+    "exampleResponse": {
+      "article": {
+        "author": "butter_bridge",
+        "title": "Living in the shadow of a great man",
+        "article_id": 1,
+        "body": "I find this existence challenging",
+        "topic": "mitch",
+        "created_at": "2018-11-15T12:21:54.171Z",
+        "votes": 110,
+        "comment_count": "13"
+      }
+    }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "Returns array of all comments for a given comment_id",
+    "queries": ["sort_by", "order", "p", "limit"],
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 2,
+          "votes": 14,
+          "created_at": "2016-11-22T12:36:03.389Z",
+          "author": "butter_bridge",
+          "body": "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky."
+        },
+        {
+          "comment_id": 3,
+          "votes": 100,
+          "created_at": "2015-11-23T12:36:03.389Z",
+          "author": "icellusedkars",
+          "body": "Replacing the quiet elegance of the dark suit and tie with the casual indifference of these muted earth tones is a form of fashion suicide, but, uh, call me crazy — onyou it works."
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "Adds comment to given article_id. Returns posted comment",
+    "queries": [],
+    "exampleBody": {
+      "username": "butter_bridge",
+      "body": "Example comment body"
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 15,
+        "votes": 0,
+        "created_at": "2019-04-04T15:26:00.000Z",
+        "author": "butter_bridge",
+        "body": "The beautiful thing about treasure is that it exists."
+      }
+    }
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "Updates the vote count for specified article by inc_votes value passed in the body. Returns updated value",
+    "queries": [],
+    "exampleBody": {
+      "inc_votes": 5
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 15,
+        "votes": 5,
+        "created_at": "2019-04-04T15:26:00.000Z",
+        "author": "butter_bridge",
+        "body": "The beautiful thing about treasure is that it exists."
+      }
+    }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "Deletes comment with given comment_id. Does not return anything.",
+    "queries": []
+  },
+  "GET /api/users/:username": {
+    "description": "Returns user object for given username",
+    "queries": [],
+    "exampleResponse": {
+      "user": {
+        "username": "icellusedkars",
+        "avatar_url": "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4",
+        "name": "sam"
+      }
+    }
+  }
+}

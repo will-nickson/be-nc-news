@@ -8,6 +8,17 @@ const selectArticles = ({
   article_id
 }) => {
   // if (!sort_by.includes(author)) return Promise.reject({ status: 404 });
+  const validSortingCriteria = [
+    "author",
+    "title",
+    "article_id",
+    "body",
+    "topic",
+    "created_at",
+    "votes",
+    "comment_count"
+  ];
+  if (!validSortingCriteria.includes(sort_by)) sort_by = "created_at";
 
   return Promise.all([
     connection("articles")
@@ -42,7 +53,7 @@ const selectArticles = ({
         if (topic) query.where({ slug: topic });
       })
       .then(topics => {
-        if (topics.length === 0) return Promise.reject({ status: 404 });
+        if (topics.length < 1) return Promise.reject({ status: 404 });
       })
   ]);
 };

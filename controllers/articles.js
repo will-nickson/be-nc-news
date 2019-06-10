@@ -6,7 +6,7 @@ const {
 } = require("../models/articles");
 
 exports.getArticles = (req, res, next) => {
-  console.log(req.query);
+  // console.log(req.query);
   selectArticles(req.query)
     .then(([articles, [total_count]]) => {
       res.status(200).send({ ...total_count, articles });

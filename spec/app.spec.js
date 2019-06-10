@@ -19,7 +19,8 @@ describe.only("/", () => {
         .get("/api")
         .expect(200)
         .then(({ body }) => {
-          expect(body.ok).to.equal(true);
+          console.log(body);
+          expect(body.endpoints).to.contain.keys("GET /api");
         });
     });
     describe("/TOPICS", () => {
@@ -321,15 +322,20 @@ describe.only("/", () => {
             .get("/api/articles?topic=not-a-topic")
             .expect(404);
         });
-        it.only("GET status: 404 - for an invalid sort_by query", () => {
-          return request(app)
-            .get("/api/articles?sort_by=not-a-column")
-            .expect(404);
-        });
-        it.only("GET status: 404 - for an invalid author query", () => {
+        it("GET status: 404 - for an invalid author query", () => {
           return request(app)
             .get("/api/articles?author=not-an-author")
             .expect(404);
+        });
+        it("GET status: 200 - for an invalid sort_by query default to created_at", () => {
+          return request(app)
+            .get("/api/articles?sort_by=not-a-column")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles).to.be.sorted("created_at", {
+                descending: "true"
+              });
+            });
         });
         it("GET status: 404 - for an invalid article_id", () => {
           return request(app)

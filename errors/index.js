@@ -3,7 +3,6 @@ exports.methodNotAllowed = (req, res) => {
 };
 
 exports.handle404 = (err, req, res, next) => {
-  // console.log(err);
   const psqlCodes = ["23503"];
   if (err.status === 404 || psqlCodes.includes(err.code))
     res.status(404).send({ msg: "Resource Not Found" });
@@ -11,7 +10,6 @@ exports.handle404 = (err, req, res, next) => {
 };
 
 exports.handle400 = (err, req, res, next) => {
-  // console.log(err);
   const psqlCodes = ["22P02", "23502"];
   if (err.status === 400 || psqlCodes.includes(err.code))
     res.status(400).send({ msg: "Bad Request" });
@@ -19,6 +17,6 @@ exports.handle400 = (err, req, res, next) => {
 };
 
 exports.handle500 = (err, req, res, next) => {
-  // console.log(err);
+  console.log(err);
   res.status(500).send({ msg: "Internal Server Error" });
 };
