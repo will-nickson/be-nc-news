@@ -13,7 +13,6 @@ const {
 } = require("../../utils/index");
 
 exports.seed = (knex, Promise) => {
-  // console.log("seeding stuff");
   return knex.migrate
     .rollback()
     .then(() => knex.migrate.latest())
@@ -49,5 +48,4 @@ exports.seed = (knex, Promise) => {
         .into("comments")
         .returning("*");
     });
-  // .then(console.log)
 };

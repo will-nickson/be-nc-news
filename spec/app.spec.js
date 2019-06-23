@@ -19,7 +19,6 @@ describe.only("/", () => {
         .get("/api")
         .expect(200)
         .then(({ body }) => {
-          console.log(body);
           expect(body.endpoints).to.contain.keys("GET /api");
         });
     });
@@ -217,14 +216,6 @@ describe.only("/", () => {
               });
             });
         });
-        it("GET /:article_id/comments status: 200 - returns an empty array when the article has no comments", () => {
-          return request(app)
-            .get("/api/articles/2/comments")
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.comments).to.eql([]);
-            });
-        });
       });
       describe("/QUERIES", () => {
         it("GET /articles status: 200 - returns articles filtered by author", () => {
@@ -317,6 +308,11 @@ describe.only("/", () => {
             .get("/api/articles/1000")
             .expect(404);
         });
+        it("GET status: 404 - when the article has no comments", () => {
+          return request(app)
+            .get("/api/articles/2/comments")
+            .expect(404);
+        });
         it("GET status: 404 - for an invalid topic query", () => {
           return request(app)
             .get("/api/articles?topic=not-a-topic")
@@ -327,25 +323,9 @@ describe.only("/", () => {
             .get("/api/articles?author=not-an-author")
             .expect(404);
         });
-        it("GET status: 200 - for an invalid sort_by query default to created_at", () => {
-          return request(app)
-            .get("/api/articles?sort_by=not-a-column")
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.articles).to.be.sorted("created_at", {
-                descending: "true"
-              });
-            });
-        });
         it("GET status: 404 - for an invalid article_id", () => {
           return request(app)
             .get("/api/articles/1000/comments")
-            .expect(404);
-        });
-        it("PATCH status: 404 - for resource that does not exist", () => {
-          return request(app)
-            .patch("/api/articles/1000")
-            .send({ inc_votes: 1000 })
             .expect(404);
         });
         it("PATCH status: 400 - for invalid article_id", () => {
@@ -353,12 +333,6 @@ describe.only("/", () => {
             .patch("/api/articles/notAnArticle")
             .send({ inc_votes: 1 })
             .expect(400);
-        });
-        it("POST status: 404 - for invalid article_id", () => {
-          return request(app)
-            .post("/api/articles/100/comments")
-            .send({ username: "icellusedkars", body: "this is a test comment" })
-            .expect(404);
         });
         it("POST status: 400 - for non-numeric article_id", () => {
           return request(app)
@@ -373,84 +347,84 @@ describe.only("/", () => {
             .expect(400);
         });
       });
-    });
-    describe("/COMMENTS", () => {
-      describe("/byCommentId", () => {
-        it("PATCH /:comment_id status: 200 - returns a comment by comment_id", () => {
-          return request(app)
-            .patch("/api/comments/1/")
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.comment).to.contain.keys(
-                "comment_id",
-                "votes",
-                "created_at",
-                "author",
-                "body"
-              );
-            });
+      describe("/COMMENTS", () => {
+        describe("/byCommentId", () => {
+          it("PATCH /:comment_id status: 200 - returns a comment by comment_id", () => {
+            return request(app)
+              .patch("/api/comments/1/")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comment).to.contain.keys(
+                  "comment_id",
+                  "votes",
+                  "created_at",
+                  "author",
+                  "body"
+                );
+              });
+          });
+          it("PATCH /:comment_id status: 200 - updates comments votes", () => {
+            return request(app)
+              .patch("/api/comments/1")
+              .send({ inc_votes: 1 })
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comment.votes).to.eql(17);
+              });
+          });
+          it("PATCH /:comment_id status: 200 - decrements comments votes", () => {
+            return request(app)
+              .patch("/api/comments/1")
+              .send({ inc_votes: -1 })
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comment.votes).to.eql(15);
+              });
+          });
+          it("DELETE /:comment_id status: 204 - removes a comment", () => {
+            return request(app)
+              .delete("/api/comments/1")
+              .expect(204);
+          });
         });
-        it("PATCH /:comment_id status: 200 - updates comments votes", () => {
-          return request(app)
-            .patch("/api/comments/1")
-            .send({ inc_votes: 1 })
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.comment.votes).to.eql(17);
-            });
-        });
-        it("PATCH /:comment_id status: 200 - decrements comments votes", () => {
-          return request(app)
-            .patch("/api/comments/1")
-            .send({ inc_votes: -1 })
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.comment.votes).to.eql(15);
-            });
-        });
-        it("DELETE /:comment_id status: 204 - removes a comment", () => {
-          return request(app)
-            .delete("/api/comments/1")
-            .expect(204);
-        });
-      });
-      describe("/ERRORS", () => {
-        it("PATCH status: 404 - invalid comment_id ", () => {
-          return request(app)
-            .patch("/api/comments/1000")
-            .send({ inc_votes: 1 })
-            .expect(404);
-        });
-        it("PATCH status: 400 - non-numeric comment_id", () => {
-          return request(app)
-            .patch("/api/comments/notAComment_id")
-            .send({ inc_votes: 1 })
-            .expect(400);
-        });
-        it("PATCH status: 400 - non-numeric votes increment", () => {
-          return request(app)
-            .patch("/api/comments/1")
-            .send({ inc_votes: "tree" })
-            .expect(400);
-        });
-        it("PATCH status: 200 - defaults to 0 for no vote increment", () => {
-          return request(app)
-            .patch("/api/comments/1")
-            .send({})
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.comment.votes).to.equal(16);
-            });
-        });
-        it("DELETE status:404 for non-existent comment_id", () => {
-          return request(app)
-            .delete("/api/comments/100")
-            .expect(404);
-        });
-        it("DELETE status:400 for non-numeric comment_id", () => {
-          return request(app)
-            .delete("/api/comments/first")
-            .expect(400);
+        describe("/ERRORS", () => {
+          it("PATCH status: 404 - invalid comment_id ", () => {
+            return request(app)
+              .patch("/api/comments/1000")
+              .send({ inc_votes: 1 })
+              .expect(404);
+          });
+          it("PATCH status: 400 - non-numeric comment_id", () => {
+            return request(app)
+              .patch("/api/comments/notAComment_id")
+              .send({ inc_votes: 1 })
+              .expect(400);
+          });
+          it("PATCH status: 400 - non-numeric votes increment", () => {
+            return request(app)
+              .patch("/api/comments/1")
+              .send({ inc_votes: "tree" })
+              .expect(400);
+          });
+          it("PATCH status: 200 - defaults to 0 for no vote increment", () => {
+            return request(app)
+              .patch("/api/comments/1")
+              .send({})
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comment.votes).to.equal(16);
+              });
+          });
+          it("DELETE status:404 for non-existent comment_id", () => {
+            return request(app)
+              .delete("/api/comments/100")
+              .expect(404);
+          });
+          it("DELETE status:400 for non-numeric comment_id", () => {
+            return request(app)
+              .delete("/api/comments/first")
+              .expect(400);
+          });
         });
       });
     });

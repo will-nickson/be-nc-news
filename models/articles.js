@@ -1,120 +1,63 @@
 const connection = require("../db/connection");
 
-const selectArticles = ({
-  sort_by = "created_at",
-  order = "desc",
-  author,
-  topic,
-  article_id
-}) => {
-  // if (!sort_by.includes(author)) return Promise.reject({ status: 404 });
-  const validSortingCriteria = [
-    "author",
-    "title",
-    "article_id",
-    "body",
-    "topic",
-    "created_at",
-    "votes",
-    "comment_count"
-  ];
-  if (!validSortingCriteria.includes(sort_by)) sort_by = "created_at";
+exports.fetchAllArticles = ({ query, column, sort, limit, offset }) =>
+  connection("articles")
+    .select("articles.*")
+    .count("comment_id AS comment_count")
+    .leftJoin("comments", "articles.article_id", "comments.article_id")
+    .groupBy("articles.article_id")
+    .where(query)
+    .orderBy(column, sort)
+    .limit(limit)
+    .offset(offset);
 
-  return Promise.all([
-    connection("articles")
-      .select(
-        "articles.author",
-        "title",
-        "articles.article_id",
-        "articles.body",
-        "topic",
-        "articles.created_at",
-        "articles.votes"
-      )
-      .leftJoin("comments", "articles.article_id", "comments.article_id")
-      .count("comments.article_id AS comment_count")
-      .groupBy("articles.article_id")
-      .orderBy(sort_by, order)
-      .modify(query => {
-        if (author) query.where({ "articles.author": author });
-        if (topic) query.where({ topic });
-        if (article_id) query.where({ "articles.article_id": article_id });
-      }),
-    connection("articles")
-      .modify(query => {
-        if (author) query.where({ "articles.author": author });
-        if (topic) query.where({ topic });
-        if (article_id) query.where({ "articles.article_id": article_id });
-      })
-      .count("article_id AS total_count"),
-    connection("topics")
-      .select("slug")
-      .modify(query => {
-        if (topic) query.where({ slug: topic });
-      })
-      .then(topics => {
-        if (topics.length < 1) return Promise.reject({ status: 404 });
-      })
-  ]);
-};
+exports.countArticles = ({ query, column, sort }) =>
+  connection("articles")
+    .select("articles.*")
+    .leftJoin("comments", "articles.article_id", "comments.article_id")
+    .groupBy("articles.article_id")
+    .where(query)
+    .orderBy(column, sort);
 
-const insertArticle = ({ username: author, ...articleRest }) => {
-  return connection
-    .insert({ author, ...articleRest })
-    .into("articles")
-    .returning([
-      "author",
-      "title",
-      "article_id",
-      "body",
-      "topic",
-      "created_at",
-      "votes"
-    ]);
-};
+exports.addArticle = insert =>
+  connection("articles")
+    .insert(insert)
+    .returning("*");
 
-const updateArticle = (article_id, { inc_votes = 0 }) => {
-  return connection("articles")
+exports.fetchArticleById = ({ article_id }) =>
+  connection("articles")
+    .select("articles.*")
+    .count("comment_id AS comment_count")
+    .leftJoin("comments", "articles.article_id", "comments.article_id")
+    .groupBy("articles.article_id")
+    .where({ "articles.article_id": article_id });
+
+exports.updateArticle = ({ article_id, votes }) =>
+  connection("articles")
     .where({ article_id })
-    .increment("votes", inc_votes)
-    .then(() => {
-      return selectArticles({ article_id });
-    });
-};
+    .increment("votes", votes)
+    .returning("*");
 
-const selectComments = (
-  article_id,
-  { sort_by = "created_at", order = "desc" }
-) => {
-  return selectArticles({ article_id }).then(([[article]]) => {
-    if (!article) return Promise.reject({ status: 404 });
-    return connection("comments")
-      .select("comment_id", "votes", "created_at", "author", "body")
-      .where({ article_id })
-      .orderBy(sort_by, order);
-  });
-};
+exports.removeArticle = ({ article_id }) =>
+  connection("articles")
+    .where({ "articles.article_id": article_id })
+    .del();
 
-const insertComment = (
+exports.fetchCommentsByArticleId = ({
   article_id,
-  { username: author, ...commentRemainder }
-) => {
-  return connection
-    .insert({ article_id, author, ...commentRemainder })
-    .into("comments")
-    .returning([
-      "article_id",
-      "comment_id",
-      "votes",
-      "created_at",
-      "author",
-      "body"
-    ]);
-};
-module.exports = {
-  selectArticles,
-  insertArticle,
-  updateArticle,
-  selectComments,
-  insertComment
-};
+  column,
+  sort,
+  limit,
+  offset
+}) =>
+  connection("comments")
+    .select("*")
+    .where({ article_id })
+    .orderBy(column, sort)
+    .limit(limit)
+    .offset(offset);
+
+exports.addCommentByArticleId = insert =>
+  connection("comments")
+    .insert(insert)
+    .returning("*");
