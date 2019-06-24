@@ -1,4 +1,4 @@
-const { fetchUsers } = require("../models/users");
+const { addNewUser, fetchUsers, fetchUserById } = require("../models/users");
 
 exports.getUsers = (req, res, next) => {
   fetchUsers().then(users => res.status(200).json({ users }));
