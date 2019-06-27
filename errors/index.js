@@ -16,6 +16,7 @@ exports.handle404 = (err, req, res, next) => {
 };
 
 exports.handle400 = (err, req, res, next) => {
+  console.log(err);
   const psqlCodes = ["22P02", "23502", "42703"];
   if (err.status === 400 || psqlCodes.includes(err.code))
     res.status(400).send({ msg: "Bad Request" });

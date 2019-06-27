@@ -246,7 +246,7 @@ describe.only("/", () => {
               });
             });
         });
-        it("GET /articles status: 200 - sorts articles by provided query", () => {
+        it("GET /articles status: 200 - sorts articles by author", () => {
           return request(app)
             .get("/api/articles?sort_by=author")
             .expect(200)
@@ -255,6 +255,18 @@ describe.only("/", () => {
                 descending: "true"
               });
               expect(body.articles[0].author).to.equal("rogersop");
+            });
+        });
+        it.only("GET /articles status: 200 - sorts articles by comment_count", () => {
+          return request(app)
+            .get("/api/articles?sort_by=comment_count")
+            .expect(200)
+            .then(({ body }) => {
+              console.log(body);
+              expect(body.articles).to.be.sorted("comment_count", {
+                descending: "true"
+              });
+              expect(body.articles[0].comment_count).to.equal("17");
             });
         });
         it("GET /articles status: 200 - sorts articles ascending or descending by provided query", () => {

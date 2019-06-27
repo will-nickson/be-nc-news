@@ -20,6 +20,7 @@ exports.getAllArticles = (req, res, next) => {
     checker(req)
   ])
     .then(([articles, count, topicExists]) => {
+      console.log(articles);
       if (topicExists === true) {
         const total_count = count.length;
         res.status(200).json({ total_count, articles });
